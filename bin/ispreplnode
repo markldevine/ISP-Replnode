@@ -52,14 +52,14 @@ sub MAIN (
     repeat {
         my @replnodes   = $dsmadmc.execute(@command);
         die unless @replnodes.elems;
-        my Str $node-name;                                              #                            Node Name: P_SANNAV
+        my Str $node-name;                                              #                            Node Name: P_SSSSSS
         my Str $type;                                                   #                                 Type: Bkup
-        my Str $filespace;                                              #                       Filespace Name: /nfsmounts/P_SANnav
+        my Str $filespace;                                              #                       Filespace Name: /nfsmounts/P_SSSSSS
         my Str $fsid;                                                   #                                 FSID: 1
         my Int $source-objs;                                            # Objects on Source Replication Server: 440
         my Int $target-objs;                                            # Objects on Target Replication Server: 436
         my Int $pending-objs;                                           # *calculated*
-        my Str $target-server;                                          #            Target Replication Server: JATSMPRD05
+        my Str $target-server;                                          #            Target Replication Server: IIIIIIII05
 
         $table = Prettier::Table.new:
             title       => 'IBM Spectrum Protect: ' ~ $isp-server ~ ' Replication Nodes Summary [' ~ DateTime(now).local.hh-mm-ss ~ ']',
