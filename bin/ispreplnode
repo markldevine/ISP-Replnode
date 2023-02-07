@@ -41,7 +41,7 @@ class Reporter does ISP::Server::Reporter {
 sub MAIN (
     Str:D   :$isp-server!,                          #= ISP server name
     Str:D   :$isp-admin!,                           #= ISP server name
-    Int:D   :$interval      where * >= 10   = 58,   #= Refresh every --interval seconds (minimum 10s)
+    Int:D   :$interval      where * >= 5    = 58,   #= Refresh every --interval seconds (minimum 10s)
     Int:D   :$count                         = 1,    #= Number of refreshes (0 is infinity)
     Bool    :$grid,                                 #= Full table grid
     Bool    :$clear,                                #= Clear the screen with each iteration
