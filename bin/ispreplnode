@@ -73,6 +73,7 @@ sub MAIN (
                                     :title('IBM Spectrum Protect: ' ~ $isp-server ~ ' Sessions'),
                                     :@command,
                                     :@fields,
+                                    :sort-by('Node Name'),
                                   );
     $reporter.loop;
 }
