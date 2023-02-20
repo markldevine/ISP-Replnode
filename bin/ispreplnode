@@ -30,7 +30,7 @@ class ISP-Replnode-statistics {
     has Int $!last-pending-objs     = 0;
 
     method pending-objs () {
-        $!pending-objs              = self.source-objs - self.target-objs;
+        $!pending-objs              = (self.source-objs - self.target-objs).abs;
         $!pending-objs-delta        = $!pending-objs - $!last-pending-objs;
         $!last-pending-objs         = $!pending-objs;
         return $!pending-objs
@@ -41,50 +41,41 @@ class Reporter does ISP::Server::Reporter {
 
     has %!statistics;
 
-    has $!last-source-objs      = 0;
-    has $!last-target-objs      = 0;
-    has $!last-pending-objs     = 0;
-
     method process-rows (@replnodes) {
-        my Str $node-name;                              #                            Node Name: P_SSSSSS
-        my Str $type;                                   #                                 Type: Bkup
-        my Str $filespace;                              #                       Filespace Name: /nfsmounts/P_SSSSSS
-        my Str $fsid;                                   #                                 FSID: 1
-        my Int $source-objs;                            # Objects on Source Replication Server: 440
-#       my Int $source-delta;                           # *calculated* Change in Source Objects since last interval
-        my Int $target-objs;                            # Objects on Target Replication Server: 436
-#       my Int $target-delta;                           # *calculated* Change in Target Objects since last interval
-#       my Int $pending-objs;                           # *calculated*
-#       my Int $pending-delta;                          # *calculated* Change in Pending Objects since last interval
-        my Str $target-server;                          #            Target Replication Server: IIIIIIII05
+        my Str $node-name;                                  #                            Node Name: P_SSSSSS
+        my Str $type;                                       #                                 Type: Bkup
+        my Str $filespace;                                  #                       Filespace Name: /nfsmounts/P_SSSSSS
+        my Str $fsid;                                       #                                 FSID: 1
+        my Int $source-objs;                                # Objects on Source Replication Server: 440
+        my Int $target-objs;                                # Objects on Target Replication Server: 436
+        my Str $target-server;                              #            Target Replication Server: IIIIIIII05
 
         my $row;
         for @replnodes -> $replnode {
-            $node-name          = Nil;  $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
-            $type               = Nil;  $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
-            $filespace          = Nil;  $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
-            $fsid               = Nil;  $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
-            $source-objs        = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
-            $target-objs        = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
-#           $pending-objs       = 0;    $pending-objs   = $source-objs - $target-objs                                                   if $source-objs;
-            $target-server      = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
-
-            %!statistics{$node-name}{$fsid}{$type}  = ISP-Replnode-statistics.new   unless %!statistics{$node-name}:exists;
-            %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
-            %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
-
-            $row                = Array.new;
-            $row.push:          $node-name;
-            $row.push:          $type;
-            $row.push:          $filespace;
-            $row.push:          $fsid;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.source-objs-delta;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:          %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta;
-            $row.push:          $target-server;
+            $node-name              = Nil;  $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
+            $type                   = Nil;  $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
+            $filespace              = Nil;  $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
+            $fsid                   = Nil;  $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
+            $source-objs            = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
+            $target-objs            = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
+            $target-server          = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
+#           if $fsid {
+                %!statistics{$node-name}{$fsid}{$type}      = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
+                %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
+                %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
+#           }
+            $row                    = Array.new;
+            $row.push:              $node-name;
+            $row.push:              $type;
+            $row.push:              $filespace;
+            $row.push:              $fsid;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs-delta;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta;
+            $row.push:              $target-server;
             self.table.add-row: $row;
         }
     }
