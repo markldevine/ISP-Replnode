@@ -59,22 +59,20 @@ class Reporter does ISP::Server::Reporter {
             $source-objs            = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
             $target-objs            = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
             $target-server          = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
-#           if $fsid {
-                %!statistics{$node-name}{$fsid}{$type}      = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
-                %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
-                %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
-#           }
+            %!statistics{$node-name}{$fsid}{$type}          = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
+            %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
+            %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
             $row                    = Array.new;
             $row.push:              $node-name;
             $row.push:              $type;
             $row.push:              $filespace;
             $row.push:              $fsid;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs-delta;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta;
+            $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:              $target-server;
             self.table.add-row: $row;
         }
