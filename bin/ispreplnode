@@ -3,19 +3,37 @@
 use ISP::Server::Reporter;
 
 class ISP-Replnode-statistics {
-    has Int $!source-objs;                              # Objects on Source Replication Server: 440
-    has Int $.source-objs-delta;                        # *calculated* Change in Source Objects since last interval
-    has Int $.target-objs;                              # Objects on Target Replication Server: 436
-    has Int $.target-objs-delta;                        # *calculated* Change in Target Objects since last interval
-    has Int $.pending-objs;                             # *calculated*
-    has Int $.pending-objs-delta;                       # *calculated* Change in Pending Objects since last interval
+
+    has Int $!source-objs           = 0;
+    has Int $.source-objs-delta     = 0;
+    has Int $!last-source-objs      = 0;
 
     method source-objs (Int :$source-objs) {
-        return $!source-objs    without $source-objs;
-#   Calc & swap
-        $source-delta       = $source-objs - $!last-source-objs;
-        $!last-source-objs  = $source-objs;
-        
+        return $!source-objs        without $source-objs;
+        $!source-objs-delta         = $source-objs - $!last-source-objs;
+        $!source-objs               = $source-objs;
+        $!last-source-objs          = $source-objs;
+    }
+
+    has Int $!target-objs           = 0;
+    has Int $.target-objs-delta     = 0;
+    has Int $!last-target-objs      = 0;
+
+    method target-objs (Int :$target-objs) {
+        return $!target-objs        without $target-objs;
+        $!target-objs-delta         = $target-objs - $!last-target-objs;
+        $!last-target-objs          = $target-objs;
+    }
+
+    has Int $!pending-objs          = 0;
+    has Int $.pending-objs-delta    = 0;
+    has Int $!last-pending-objs     = 0;
+
+    method pending-objs () {
+        $!pending-objs              = self.source-objs - self.target-objs;
+        $!pending-objs-delta        = $!pending-objs - $!last-pending-objs;
+        $!last-pending-objs         = $!pending-objs;
+        return $!pending-objs
     }
 }
 
@@ -51,16 +69,21 @@ class Reporter does ISP::Server::Reporter {
 #           $pending-objs       = 0;    $pending-objs   = $source-objs - $target-objs                                                   if $source-objs;
             $target-server      = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
 
-            %!statistics{$node-name}{$fsid}{$type}      = ISP-Replnode-statistics.new   unless %!statistics{$node-name}:exists;
+            %!statistics{$node-name}{$fsid}{$type}  = ISP-Replnode-statistics.new   unless %!statistics{$node-name}:exists;
+            %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
+            %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
 
             $row                = Array.new;
             $row.push:          $node-name;
             $row.push:          $type;
             $row.push:          $filespace;
             $row.push:          $fsid;
-            $row.push:          $source-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:          $target-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:          $pending-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.source-objs-delta;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:          %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta;
             $row.push:          $target-server;
             self.table.add-row: $row;
         }
