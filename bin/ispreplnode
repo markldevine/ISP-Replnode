@@ -6,10 +6,11 @@ class ISP-Replnode-statistics {
 
     has Int $!source-objs           = 0;
     has Int $.source-objs-delta     = 0;
-    has Int $!last-source-objs      = 0;
+    has Int $!last-source-objs      = -1;
 
     method source-objs (Int :$source-objs) {
         return $!source-objs        without $source-objs;
+        $!last-source-objs          = $source-objs unless $!last-source-objs >= 0;
         $!source-objs-delta         = $source-objs - $!last-source-objs;
         $!source-objs               = $source-objs;
         $!last-source-objs          = $source-objs;
@@ -17,20 +18,22 @@ class ISP-Replnode-statistics {
 
     has Int $!target-objs           = 0;
     has Int $.target-objs-delta     = 0;
-    has Int $!last-target-objs      = 0;
+    has Int $!last-target-objs      = -1;
 
     method target-objs (Int :$target-objs) {
         return $!target-objs        without $target-objs;
+        $!last-target-objs          = $target-objs unless $!last-target-objs >= 0;
         $!target-objs-delta         = $target-objs - $!last-target-objs;
         $!last-target-objs          = $target-objs;
     }
 
     has Int $!pending-objs          = 0;
     has Int $.pending-objs-delta    = 0;
-    has Int $!last-pending-objs     = 0;
+    has Int $!last-pending-objs     = -1;
 
     method pending-objs () {
         $!pending-objs              = (self.source-objs - self.target-objs).abs;
+        $!last-pending-objs         = $!pending-objs unless $!last-pending-objs >= 0;
         $!pending-objs-delta        = $!pending-objs - $!last-pending-objs;
         $!last-pending-objs         = $!pending-objs;
         return $!pending-objs
