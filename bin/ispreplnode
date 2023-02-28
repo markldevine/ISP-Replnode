@@ -24,6 +24,7 @@ class ISP-Replnode-statistics {
         return $!target-objs        without $target-objs;
         $!last-target-objs          = $target-objs unless $!last-target-objs >= 0;
         $!target-objs-delta         = $target-objs - $!last-target-objs;
+        $!target-objs               = $target-objs;
         $!last-target-objs          = $target-objs;
     }
 
