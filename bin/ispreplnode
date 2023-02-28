@@ -77,7 +77,7 @@ class Reporter does ISP::Server::Reporter {
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
             my Rat $pc              = ($target-objs / $source-objs) * 100;
-            if 99.9 <= $pc < 100.0 {
+            if 99.9 < $pc < 100.0 {
                 $pc                 = 99.9;
             }
             $row.push:              $pc.fmt("%.1f%%");
