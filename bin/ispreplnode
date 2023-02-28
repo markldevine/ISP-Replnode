@@ -110,7 +110,7 @@ sub MAIN (
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Δ'),       :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Pending Objs'),     :alignment('r'));
 #   @fields.push:   ISP::Server::Reporter::Field.new(:name('Pending Δ'),      :alignment('r'));
-    @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Server'),    :alignment('l'));
+    @fields.push:   ISP::Server::Reporter::Field.new(:name('Tgt Srvr'),         :alignment('l'));
     my $reporter    = Reporter.new(
                                     :$isp-server,
                                     :$isp-admin,
