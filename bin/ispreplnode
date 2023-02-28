@@ -76,7 +76,7 @@ class Reporter does ISP::Server::Reporter {
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
-#           $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs-delta.Str.flip.comb(3).join(',').flip;
+            $row.push:              (($target-objs / $source-objs) * 100).fmt("%.1f%%");
             $row.push:              $target-server;
             self.table.add-row: $row;
         }
@@ -109,7 +109,7 @@ sub MAIN (
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Objs'),      :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Δ'),       :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Pending Objs'),     :alignment('r'));
-#   @fields.push:   ISP::Server::Reporter::Field.new(:name('Pending Δ'),      :alignment('r'));
+    @fields.push:   ISP::Server::Reporter::Field.new(:name('Completed'),        :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Tgt Srvr'),         :alignment('l'));
     my $reporter    = Reporter.new(
                                     :$isp-server,
