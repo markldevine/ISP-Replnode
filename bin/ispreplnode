@@ -79,15 +79,15 @@ class Reporter does ISP::Server::Reporter {
 
         my $row;
         for @replnodes -> $replnode {
-            $node-name                  = Nil;  $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
-            $type                       = Nil;  $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
-            $filespace                  = Nil;  $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
-            $fsid                       = Nil;  $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
+            $node-name                  = '';   $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
+            $type                       = '';   $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
+            $filespace                  = '';   $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
+            $fsid                       = '';   $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
             $source-objs                = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
             $target-objs                = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
-            $target-server              = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
+            $target-server              = '';   $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
 
-            %!statistics{$node-name}{$fsid}{$type}          = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
+            %!statistics{$node-name}{$fsid}{$type}              = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
 
             %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
             %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
@@ -111,9 +111,11 @@ class Reporter does ISP::Server::Reporter {
             $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
             $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:                  $pending-objs.Str.flip.comb(3).join(',').flip;
-            my Rat $pct-complete        = ($target-objs / $source-objs) * 100;
-            if 99.9 < $pct-complete < 100.0 {
-                $pct-complete           = 99.9;
+            
+            my Rat $pct-complete        = 100.0;
+            if $source-objs > 0 {
+                $pct-complete           = ($target-objs / $source-objs) * 100;
+                $pct-complete           = 99.9 if 99.9 < $pct-complete < 100.0;
             }
             $row.push:                  $pct-complete.fmt("%.1f%%");
             $row.push:                  $target-server;
