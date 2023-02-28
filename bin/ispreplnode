@@ -2,41 +2,58 @@
 
 use ISP::Server::Reporter;
 
+constant \KILO  = 1024;
+constant \MEGA  = KILO  * 1024;
+constant \GIGA  = MEGA  * 1024;
+constant \TERA  = GIGA  * 1024;
+constant \PETA  = TERA  * 1024;
+
+sub bytes-to-unit (Int:D $bytes) {
+    given $bytes {
+        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
+        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T"); }
+        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G"); }
+        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M"); }
+        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K"); }
+        default         { return $bytes.fmt("%s B");            }
+    }
+}
+
 class ISP-Replnode-statistics {
 
-    has Int $!source-objs           = 0;
-    has Int $.source-objs-delta     = 0;
-    has Int $!last-source-objs      = -1;
+    has Int $!source-objs               = 0;
+    has Int $.source-objs-delta         = 0;
+    has Int $!last-source-objs          = -1;
 
     method source-objs (Int :$source-objs) {
-        return $!source-objs        without $source-objs;
-        $!last-source-objs          = $source-objs unless $!last-source-objs >= 0;
-        $!source-objs-delta         = $source-objs - $!last-source-objs;
-        $!source-objs               = $source-objs;
-        $!last-source-objs          = $source-objs;
+        return $!source-objs            without $source-objs;
+        $!last-source-objs              = $source-objs unless $!last-source-objs >= 0;
+        $!source-objs-delta             = $source-objs - $!last-source-objs;
+        $!source-objs                   = $source-objs;
+        $!last-source-objs              = $source-objs;
     }
 
-    has Int $!target-objs           = 0;
-    has Int $.target-objs-delta     = 0;
-    has Int $!last-target-objs      = -1;
+    has Int $!target-objs               = 0;
+    has Int $.target-objs-delta         = 0;
+    has Int $!last-target-objs          = -1;
 
     method target-objs (Int :$target-objs) {
-        return $!target-objs        without $target-objs;
-        $!last-target-objs          = $target-objs unless $!last-target-objs >= 0;
-        $!target-objs-delta         = $target-objs - $!last-target-objs;
-        $!target-objs               = $target-objs;
-        $!last-target-objs          = $target-objs;
+        return $!target-objs            without $target-objs;
+        $!last-target-objs              = $target-objs unless $!last-target-objs >= 0;
+        $!target-objs-delta             = $target-objs - $!last-target-objs;
+        $!target-objs                   = $target-objs;
+        $!last-target-objs              = $target-objs;
     }
 
-    has Int $!pending-objs          = 0;
-    has Int $.pending-objs-delta    = 0;
-    has Int $!last-pending-objs     = -1;
+    has Int $!pending-objs              = 0;
+    has Int $.pending-objs-delta        = 0;
+    has Int $!last-pending-objs         = -1;
 
     method pending-objs () {
-        $!pending-objs              = (self.source-objs - self.target-objs).abs;
-        $!last-pending-objs         = $!pending-objs unless $!last-pending-objs >= 0;
-        $!pending-objs-delta        = $!pending-objs - $!last-pending-objs;
-        $!last-pending-objs         = $!pending-objs;
+        $!pending-objs                  = (self.source-objs - self.target-objs).abs;
+        $!last-pending-objs             = $!pending-objs unless $!last-pending-objs >= 0;
+        $!pending-objs-delta            = $!pending-objs - $!last-pending-objs;
+        $!last-pending-objs             = $!pending-objs;
         return $!pending-objs
     }
 }
@@ -54,36 +71,69 @@ class Reporter does ISP::Server::Reporter {
         my Int $target-objs;                                # Objects on Target Replication Server: 436
         my Str $target-server;                              #            Target Replication Server: IIIIIIII05
 
+        my $total-source-objs           = 0;
+        my $total-source-objs-delta     = 0;
+        my $total-target-objs           = 0;
+        my $total-target-objs-delta     = 0;
+        my $total-pending-objs          = 0;
+
         my $row;
         for @replnodes -> $replnode {
-            $node-name              = Nil;  $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
-            $type                   = Nil;  $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
-            $filespace              = Nil;  $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
-            $fsid                   = Nil;  $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
-            $source-objs            = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
-            $target-objs            = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
-            $target-server          = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
+            $node-name                  = Nil;  $node-name      = $replnode{'Node Name'}.Str                                                    if $replnode{'Node Name'};
+            $type                       = Nil;  $type           = $replnode{'Type'}.Str                                                         if $replnode{'Type'};
+            $filespace                  = Nil;  $filespace      = $replnode{'Filespace Name'}.Str                                               if $replnode{'Filespace Name'};
+            $fsid                       = Nil;  $fsid           = $replnode{'FSID'}.Str                                                         if $replnode{'FSID'};
+            $source-objs                = 0;    $source-objs    = $replnode{'Objects on Source Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Source Replication Server'};
+            $target-objs                = 0;    $target-objs    = $replnode{'Objects on Target Replication Server'}.comb.grep(/\d/).join.Int    if $replnode{'Objects on Target Replication Server'};
+            $target-server              = Nil;  $target-server  = $replnode{'Target Replication Server'}.Str                                    if $replnode{'Target Replication Server'};
+
             %!statistics{$node-name}{$fsid}{$type}          = ISP-Replnode-statistics.new   unless %!statistics{$node-name}{$fsid}{$type}:exists;
+
             %!statistics{$node-name}{$fsid}{$type}.source-objs(:$source-objs);
             %!statistics{$node-name}{$fsid}{$type}.target-objs(:$target-objs);
-            $row                    = Array.new;
-            $row.push:              $node-name;
-            $row.push:              $type;
-            $row.push:              $filespace;
-            $row.push:              $fsid;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.source-objs-delta.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
-            $row.push:              %!statistics{$node-name}{$fsid}{$type}.pending-objs.Str.flip.comb(3).join(',').flip;
-            my Rat $pc              = ($target-objs / $source-objs) * 100;
-            if 99.9 < $pc < 100.0 {
-                $pc                 = 99.9;
+
+            $total-source-objs         += $source-objs;
+            $total-source-objs-delta   += %!statistics{$node-name}{$fsid}{$type}.source-objs-delta;
+
+            $total-target-objs         += $target-objs;
+            $total-target-objs-delta   += %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
+
+            my $pending-objs            = %!statistics{$node-name}{$fsid}{$type}.pending-objs;
+            $total-pending-objs        += $pending-objs;
+
+            $row                        = Array.new;
+            $row.push:                  $node-name;
+            $row.push:                  $type;
+            $row.push:                  $filespace;
+            $row.push:                  $fsid;
+            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs-delta.Str.flip.comb(3).join(',').flip;
+            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
+            $row.push:                  $pending-objs.Str.flip.comb(3).join(',').flip;
+            my Rat $pct-complete        = ($target-objs / $source-objs) * 100;
+            if 99.9 < $pct-complete < 100.0 {
+                $pct-complete           = 99.9;
             }
-            $row.push:              $pc.fmt("%.1f%%");
-            $row.push:              $target-server;
-            self.table.add-row: $row;
+            $row.push:                  $pct-complete.fmt("%.1f%%");
+            $row.push:                  $target-server;
+            self.table.add-row:         $row;
         }
+        $row                            = [ '~', ' ', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', ' ', ];
+        self.table.add-row:             $row;
+        $row                            = [ "~ TOTALS", ' ', ' ', ' ', ];
+        $row.push:                      bytes-to-unit($total-source-objs);
+        $row.push:                      bytes-to-unit($total-source-objs-delta);
+        $row.push:                      bytes-to-unit($total-target-objs);
+        $row.push:                      bytes-to-unit($total-target-objs-delta);
+        $row.push:                      bytes-to-unit($total-pending-objs);
+        my Rat $pct-complete            = ($total-target-objs / $total-source-objs) * 100;
+        if 99.9 < $pct-complete < 100.0 {
+            $pct-complete               = 99.9;
+        }
+        $row.push:                      $pct-complete.fmt("%.1f%%");
+        $row.push:                      ' ';
+        self.table.add-row:             $row;
     }
 }
 
