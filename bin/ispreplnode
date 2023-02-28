@@ -118,7 +118,7 @@ sub MAIN (
                                     :$grid,
                                     :$clear,
                                     :$interval,
-                                    :title('IBM Spectrum Protect: ' ~ $isp-server ~ ' Sessions'),
+                                    :title('IBM Spectrum Protect: ' ~ $isp-server ~ ' Node Replication'),
                                     :@command,
                                     :@fields,
                                     :sort-by('Node Name'),
