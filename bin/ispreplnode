@@ -8,6 +8,46 @@ constant \GIGA  = MEGA  * 1024;
 constant \TERA  = GIGA  * 1024;
 constant \PETA  = TERA  * 1024;
 
+my @SUB-DIGITS;
+@SUB-DIGITS[0]    = "\x[2080]";
+@SUB-DIGITS[1]    = "\x[2081]";
+@SUB-DIGITS[2]    = "\x[2082]";
+@SUB-DIGITS[3]    = "\x[2083]";
+@SUB-DIGITS[4]    = "\x[2084]";
+@SUB-DIGITS[5]    = "\x[2085]";
+@SUB-DIGITS[6]    = "\x[2086]";
+@SUB-DIGITS[7]    = "\x[2087]";
+@SUB-DIGITS[8]    = "\x[2088]";
+@SUB-DIGITS[9]    = "\x[2089]";
+
+my @SUPER-DIGITS;
+@SUPER-DIGITS[0]    = "\x[2070]";
+@SUPER-DIGITS[1]    = "\x[00B9]";
+@SUPER-DIGITS[2]    = "\x[00B2]";
+@SUPER-DIGITS[3]    = "\x[00B3]";
+@SUPER-DIGITS[4]    = "\x[2074]";
+@SUPER-DIGITS[5]    = "\x[2075]";
+@SUPER-DIGITS[6]    = "\x[2076]";
+@SUPER-DIGITS[7]    = "\x[2077]";
+@SUPER-DIGITS[8]    = "\x[2078]";
+@SUPER-DIGITS[9]    = "\x[2079]";
+
+sub int-to-superscript (Int:D $i) {
+    my $accumulator = '';
+    for $i.Int.comb -> $c {
+        $accumulator ~= @SUPER-DIGITS[$c.Int];
+    }
+    return $accumulator;
+}
+
+sub int-to-subscript (Int:D $i) {
+    my $accumulator = '';
+    for $i.Int.comb -> $c {
+        $accumulator ~= @SUB-DIGITS[$c.Int];
+    }
+    return $accumulator;
+}
+
 sub bytes-to-unit (Int:D $bytes) {
     given $bytes {
         when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
@@ -104,8 +144,7 @@ class Reporter does ISP::Server::Reporter {
             $row                        = Array.new;
             $row.push:                  $node-name;
             $row.push:                  $type;
-            $row.push:                  $filespace;
-            $row.push:                  $fsid;
+            $row.push:                  $filespace ~ int-to-superscript($fsid.Int);
             $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
             $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs-delta.Str.flip.comb(3).join(',').flip;
             $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
@@ -121,9 +160,9 @@ class Reporter does ISP::Server::Reporter {
             $row.push:                  $target-server;
             self.table.add-row:         $row;
         }
-        $row                            = [ '~', ' ', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', ' ', ];
+        $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', ' ', ];
         self.table.add-row:             $row;
-        $row                            = [ "~ TOTALS", ' ', ' ', ' ', ];
+        $row                            = [ "~ TOTALS", ' ', ' ', ];
         $row.push:                      bytes-to-unit($total-source-objs);
         $row.push:                      bytes-to-unit($total-source-objs-delta);
         $row.push:                      bytes-to-unit($total-target-objs);
@@ -138,6 +177,52 @@ class Reporter does ISP::Server::Reporter {
         self.table.add-row:             $row;
     }
 }
+
+#"select NODE_NAME,START_TIME,FSNAME,FSID,PROC_ID,TOTFILES_TO_REPLICATE,TOTFILES_REPLICATED,TOTBYTES_TO_REPLICATE,TOTBYTES_REPLICATED,BKSERVER from REPLICATIONVIEW where NODE_NAME in (select NODE_NAME from NODES where NODEGROUP='DFS')"
+#            NODE_NAME: DFS2K16-14
+#           START_TIME: 2023-02-28 08:21:57.000000
+#               FSNAME: \\dfs2k16-14\c$\data\fs10
+#                 FSID: 2
+#              PROC_ID: 1180
+#TOTFILES_TO_REPLICATE: 3811271
+#  TOTFILES_REPLICATED: 3811271
+#TOTBYTES_TO_REPLICATE: 940329062584
+#  TOTBYTES_REPLICATED: 940329062584
+#             BKSERVER: ISPLC01
+#
+#            NODE_NAME: DFS2K16-17
+#           START_TIME: 2023-02-28 17:00:48.000000
+#               FSNAME: \\dfs2k16-17\g$
+#                 FSID: 4
+#              PROC_ID: 1188
+#TOTFILES_TO_REPLICATE: 154619
+#  TOTFILES_REPLICATED: 74492
+#TOTBYTES_TO_REPLICATE: 965132679688
+#  TOTBYTES_REPLICATED: 275247425006
+#             BKSERVER: ISPLC01
+
+#"select NODE_NAME,START_TIME,FSNAME,FSID,PROC_ID,TOTFILES_TO_REPLICATE,TOTFILES_REPLICATED,TOTBYTES_TO_REPLICATE,TOTBYTES_REPLICATED,BKSERVER from REPLICATIONVIEW where STATE='RUNNING'"
+#            NODE_NAME: DFS2K16-15
+#           START_TIME: 2023-02-28 12:23:31.000000
+#               FSNAME: \\dfs2k16-15\c$\data\fs15
+#                 FSID: 4
+#              PROC_ID: 1184
+#TOTFILES_TO_REPLICATE: 1064390
+#  TOTFILES_REPLICATED: 786166
+#TOTBYTES_TO_REPLICATE: 3860938584793
+#  TOTBYTES_REPLICATED: 1959312768620
+#             BKSERVER: ISPLC01
+#
+#            NODE_NAME: DFS2K16-15
+#           START_TIME: 2023-02-28 12:23:31.000000
+#               FSNAME: \\dfs2k16-15\c$\data\fs151
+#                 FSID: 5
+#              PROC_ID: 1184
+#TOTFILES_TO_REPLICATE: 1281422
+#  TOTFILES_REPLICATED: 1227044
+#TOTBYTES_TO_REPLICATE: 1692333539470
+#  TOTBYTES_REPLICATED: 1478381486808
+#             BKSERVER: ISPLC01
 
 sub MAIN (
     Str:D   :$isp-server!,                          #= ISP server name
@@ -159,7 +244,7 @@ sub MAIN (
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Node Name'),        :alignment('l'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Type'),             :alignment('l'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Filespace Name'),   :alignment('l'));
-    @fields.push:   ISP::Server::Reporter::Field.new(:name('FSID'),             :alignment('r'));
+#   @fields.push:   ISP::Server::Reporter::Field.new(:name('FSID'),             :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Source Objs'),      :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Source Δ'),       :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Objs'),      :alignment('r'));
