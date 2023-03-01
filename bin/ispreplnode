@@ -48,6 +48,12 @@ sub int-to-subscript (Int:D $i) {
     return $accumulator;
 }
 
+sub num-with-comma (Int:D $i is copy) {
+    return $i.Str.flip.comb(3).join(',').flip if $i >= 0;
+    $i *= -1;
+    return '-' ~ $i.Str.flip.comb(3).join(',').flip;
+}
+
 sub bytes-to-unit (Int:D $bytes) {
     given $bytes {
         when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
@@ -90,7 +96,8 @@ class ISP-Replnode-statistics {
     has Int $!last-pending-objs         = -1;
 
     method pending-objs () {
-        $!pending-objs                  = (self.source-objs - self.target-objs).abs;
+        $!pending-objs                  = (self.source-objs - self.target-objs);
+#       $!pending-objs                  = 0 if $!pending-objs < 0;
         $!last-pending-objs             = $!pending-objs unless $!last-pending-objs >= 0;
         $!pending-objs-delta            = $!pending-objs - $!last-pending-objs;
         $!last-pending-objs             = $!pending-objs;
@@ -145,11 +152,11 @@ class Reporter does ISP::Server::Reporter {
             $row.push:                  $node-name;
             $row.push:                  $type;
             $row.push:                  $filespace ~ int-to-superscript($fsid.Int);
-            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.source-objs-delta.Str.flip.comb(3).join(',').flip;
-            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs.Str.flip.comb(3).join(',').flip;
-            $row.push:                  %!statistics{$node-name}{$fsid}{$type}.target-objs-delta.Str.flip.comb(3).join(',').flip;
-            $row.push:                  $pending-objs.Str.flip.comb(3).join(',').flip;
+            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs);
+            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs-delta);
+            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.target-objs);
+            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.target-objs-delta);
+            $row.push:                  num-with-comma($pending-objs);
             
             my Rat $pct-complete        = 100.0;
             if $source-objs > 0 {
