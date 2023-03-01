@@ -244,7 +244,6 @@ sub MAIN (
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Node Name'),        :alignment('l'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Type'),             :alignment('l'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Filespace Name'),   :alignment('l'));
-#   @fields.push:   ISP::Server::Reporter::Field.new(:name('FSID'),             :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Source Objs'),      :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Source Δ'),       :alignment('r'));
     @fields.push:   ISP::Server::Reporter::Field.new(:name('Target Objs'),      :alignment('r'));
