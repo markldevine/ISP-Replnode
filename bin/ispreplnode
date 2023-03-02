@@ -56,12 +56,12 @@ sub num-with-comma (Int:D $i is copy) {
 
 sub bytes-to-unit (Int:D $bytes) {
     given $bytes {
-        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
-        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T"); }
-        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G"); }
-        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M"); }
-        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K"); }
-        default         { return $bytes.fmt("%s B");            }
+        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P");     }
+        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T");     }
+        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G");     }
+        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M");     }
+        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K");     }
+        default         { return $bytes ?? $bytes ~ ' B' !! $bytes  }
     }
 }
 
@@ -97,7 +97,6 @@ class ISP-Replnode-statistics {
 
     method pending-objs () {
         $!pending-objs                  = (self.source-objs - self.target-objs);
-#       $!pending-objs                  = 0 if $!pending-objs < 0;
         $!last-pending-objs             = $!pending-objs unless $!last-pending-objs >= 0;
         $!pending-objs-delta            = $!pending-objs - $!last-pending-objs;
         $!last-pending-objs             = $!pending-objs;
