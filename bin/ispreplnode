@@ -179,7 +179,8 @@ class Reporter does ISP::Server::Reporter {
             $pct-complete               = 99.9;
         }
         $row.push:                      $pct-complete.fmt("%.1f%%");
-        $row.push:                      ' ';
+        $row.push:                      sprintf("%.1f obj/sec", $total-target-objs-delta / (now - self.first-iteration));
+#       $row.push:                      ' ';
         self.table.add-row:             $row;
     }
 }
