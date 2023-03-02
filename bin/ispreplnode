@@ -54,14 +54,14 @@ sub num-with-comma (Int:D $i is copy) {
     return '-' ~ $i.Str.flip.comb(3).join(',').flip;
 }
 
-sub bytes-to-unit (Int:D $bytes) {
-    given $bytes {
-        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
-        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T"); }
-        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G"); }
-        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M"); }
-        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K"); }
-        default         { return $bytes                         }
+sub num-to-metric (Int:D $num) {
+    given $num {
+        when $_ >= PETA { return ($num / PETA).fmt("%.1f P"); }
+        when $_ >= TERA { return ($num / TERA).fmt("%.1f T"); }
+        when $_ >= GIGA { return ($num / GIGA).fmt("%.1f G"); }
+        when $_ >= MEGA { return ($num / MEGA).fmt("%.1f M"); }
+        when $_ >= KILO { return ($num / KILO).fmt("%.1f K"); }
+        default         { return $num                         }
     }
 }
 
@@ -169,11 +169,11 @@ class Reporter does ISP::Server::Reporter {
         $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', ' ', ];
         self.table.add-row:             $row;
         $row                            = [ "~ TOTALS", ' ', ' ', ];
-        $row.push:                      bytes-to-unit($total-source-objs);
-        $row.push:                      bytes-to-unit($total-source-objs-delta);
-        $row.push:                      bytes-to-unit($total-target-objs);
-        $row.push:                      bytes-to-unit($total-target-objs-delta);
-        $row.push:                      bytes-to-unit($total-pending-objs);
+        $row.push:                      num-to-metric($total-source-objs);
+        $row.push:                      num-to-metric($total-source-objs-delta);
+        $row.push:                      num-to-metric($total-target-objs);
+        $row.push:                      num-to-metric($total-target-objs-delta);
+        $row.push:                      num-to-metric($total-pending-objs);
         my Rat $pct-complete            = ($total-target-objs / $total-source-objs) * 100;
         if 99.9 < $pct-complete < 100.0 {
             $pct-complete               = 99.9;
