@@ -2,11 +2,11 @@
 
 use ISP::Server::Reporter;
 
-constant \KILO  = 1024;
-constant \MEGA  = KILO  * 1024;
-constant \GIGA  = MEGA  * 1024;
-constant \TERA  = GIGA  * 1024;
-constant \PETA  = TERA  * 1024;
+constant \KILO  = 1000;
+constant \MEGA  = KILO  * 1000;
+constant \GIGA  = MEGA  * 1000;
+constant \TERA  = GIGA  * 1000;
+constant \PETA  = TERA  * 1000;
 
 my @SUB-DIGITS;
 @SUB-DIGITS[0]    = "\x[2080]";
