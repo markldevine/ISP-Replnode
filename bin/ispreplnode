@@ -56,12 +56,12 @@ sub num-with-comma (Int:D $i is copy) {
 
 sub bytes-to-unit (Int:D $bytes) {
     given $bytes {
-        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P");     }
-        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T");     }
-        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G");     }
-        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M");     }
-        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K");     }
-        default         { return $bytes ?? $bytes ~ ' B' !! $bytes  }
+        when $_ >= PETA { return ($bytes / PETA).fmt("%.1f P"); }
+        when $_ >= TERA { return ($bytes / TERA).fmt("%.1f T"); }
+        when $_ >= GIGA { return ($bytes / GIGA).fmt("%.1f G"); }
+        when $_ >= MEGA { return ($bytes / MEGA).fmt("%.1f M"); }
+        when $_ >= KILO { return ($bytes / KILO).fmt("%.1f K"); }
+        default         { return $bytes                         }
     }
 }
 
