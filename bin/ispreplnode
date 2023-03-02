@@ -184,8 +184,8 @@ class Reporter does ISP::Server::Reporter {
         }
         $row.push:                      $pct-complete.fmt("%.1f%%");
         my $atd-rate                    = (($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60);
-        $atd-rate                       = 1 if 0 < $atd-rate < 1;
-        $row.push:                      sprintf("%s obj/min", num-to-metric($atd-rate));
+        $atd-rate                       = 1.0 if 0.0 < $atd-rate < 1.0;
+        $row.push:                      sprintf("%s obj/min", num-to-metric($atd-rate.Int));
         self.table.add-row:             $row;
     }
 }
