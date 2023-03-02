@@ -151,7 +151,7 @@ class Reporter does ISP::Server::Reporter {
             $row                        = Array.new;
             $row.push:                  $node-name;
             $row.push:                  $type;
-            $row.push:                  $filespace ~ int-to-superscript($fsid.Int);
+            $row.push:                  $filespace ?? $filespace ~ int-to-superscript($fsid.Int) !! ' ';
             $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs);
             $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs-delta);
             $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.target-objs);
