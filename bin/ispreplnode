@@ -181,7 +181,7 @@ class Reporter does ISP::Server::Reporter {
             $pct-complete               = 99.9;
         }
         $row.push:                      $pct-complete.fmt("%.1f%%");
-        $row.push:                      sprintf("%d obj/min", num-to-metric((($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60)));
+        $row.push:                      sprintf("%s obj/min", num-to-metric((($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60)));
         self.table.add-row:             $row;
     }
 }
