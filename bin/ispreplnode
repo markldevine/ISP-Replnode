@@ -168,9 +168,11 @@ class Reporter does ISP::Server::Reporter {
             self.table.add-row:         $row;
         }
         $!accumulated-total-t-delta    += $total-target-objs-delta;
-        $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', '--------------', ];
+
+        $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', '-----------------', ];
         self.table.add-row:             $row;
-        $row                            = [ "~ TOTALS", ' ', ' ', ];
+#       $row                            = [ "~ TOTALS", ' ', ' ', ];
+        $row                            = [ "~ TOTALS", ' ', ($!accumulated-total-t-delta / (now - self.first-iteration)) * 60, ];
         $row.push:                      num-to-metric($total-source-objs);
         $row.push:                      num-to-metric($total-source-objs-delta);
         $row.push:                      num-to-metric($total-target-objs);
@@ -181,7 +183,9 @@ class Reporter does ISP::Server::Reporter {
             $pct-complete               = 99.9;
         }
         $row.push:                      $pct-complete.fmt("%.1f%%");
-        $row.push:                      sprintf("%s obj/min", num-to-metric((($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60)));
+        my $atd-rate                    = (($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60);
+        $atd-rate                       = 1 if 0 < $atd-rate < 1;
+        $row.push:                      sprintf("%s obj/min", num-to-metric($atd-rate));
         self.table.add-row:             $row;
     }
 }
