@@ -169,10 +169,9 @@ class Reporter does ISP::Server::Reporter {
         }
         $!accumulated-total-t-delta    += $total-target-objs-delta;
 
-        $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', '-----------------', ];
+        $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', '----------------', ];
         self.table.add-row:             $row;
-#       $row                            = [ "~ TOTALS", ' ', ' ', ];
-        $row                            = [ "~ TOTALS", ' ', ($!accumulated-total-t-delta / (now - self.first-iteration)) * 60, ];
+        $row                            = [ "~ TOTALS", ' ', ' ', ];
         $row.push:                      num-to-metric($total-source-objs);
         $row.push:                      num-to-metric($total-source-objs-delta);
         $row.push:                      num-to-metric($total-target-objs);
