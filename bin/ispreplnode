@@ -107,6 +107,7 @@ class ISP-Replnode-statistics {
 class Reporter does ISP::Server::Reporter {
 
     has %!statistics;
+    has $!accumulated-total-t-delta     = 0;
 
     method process-rows (@replnodes) {
         my Str $node-name;                                  #                            Node Name: P_SSSSSS
@@ -166,6 +167,7 @@ class Reporter does ISP::Server::Reporter {
             $row.push:                  $target-server;
             self.table.add-row:         $row;
         }
+        $!accumulated-total-t-delta    += $total-target-objs-delta;
         $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', ' ', ];
         self.table.add-row:             $row;
         $row                            = [ "~ TOTALS", ' ', ' ', ];
@@ -179,8 +181,7 @@ class Reporter does ISP::Server::Reporter {
             $pct-complete               = 99.9;
         }
         $row.push:                      $pct-complete.fmt("%.1f%%");
-        $row.push:                      sprintf("%.1f obj/sec", $total-target-objs-delta / (now - self.first-iteration));
-#       $row.push:                      ' ';
+        $row.push:                      sprintf("%d obj/min", num-to-metric((($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60)));
         self.table.add-row:             $row;
     }
 }
