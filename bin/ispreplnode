@@ -1,69 +1,7 @@
 #!/usr/bin/env raku
 
+use Our::Utilities;
 use ISP::Server::Reporter;
-
-constant \KILO  = 1000;
-constant \MEGA  = KILO  * 1000;
-constant \GIGA  = MEGA  * 1000;
-constant \TERA  = GIGA  * 1000;
-constant \PETA  = TERA  * 1000;
-
-my @SUB-DIGITS;
-@SUB-DIGITS[0]    = "\x[2080]";
-@SUB-DIGITS[1]    = "\x[2081]";
-@SUB-DIGITS[2]    = "\x[2082]";
-@SUB-DIGITS[3]    = "\x[2083]";
-@SUB-DIGITS[4]    = "\x[2084]";
-@SUB-DIGITS[5]    = "\x[2085]";
-@SUB-DIGITS[6]    = "\x[2086]";
-@SUB-DIGITS[7]    = "\x[2087]";
-@SUB-DIGITS[8]    = "\x[2088]";
-@SUB-DIGITS[9]    = "\x[2089]";
-
-my @SUPER-DIGITS;
-@SUPER-DIGITS[0]    = "\x[2070]";
-@SUPER-DIGITS[1]    = "\x[00B9]";
-@SUPER-DIGITS[2]    = "\x[00B2]";
-@SUPER-DIGITS[3]    = "\x[00B3]";
-@SUPER-DIGITS[4]    = "\x[2074]";
-@SUPER-DIGITS[5]    = "\x[2075]";
-@SUPER-DIGITS[6]    = "\x[2076]";
-@SUPER-DIGITS[7]    = "\x[2077]";
-@SUPER-DIGITS[8]    = "\x[2078]";
-@SUPER-DIGITS[9]    = "\x[2079]";
-
-sub int-to-superscript (Int:D $i) {
-    my $accumulator = '';
-    for $i.Int.comb -> $c {
-        $accumulator ~= @SUPER-DIGITS[$c.Int];
-    }
-    return $accumulator;
-}
-
-sub int-to-subscript (Int:D $i) {
-    my $accumulator = '';
-    for $i.Int.comb -> $c {
-        $accumulator ~= @SUB-DIGITS[$c.Int];
-    }
-    return $accumulator;
-}
-
-sub num-with-comma (Int:D $i is copy) {
-    return $i.Str.flip.comb(3).join(',').flip if $i >= 0;
-    $i *= -1;
-    return '-' ~ $i.Str.flip.comb(3).join(',').flip;
-}
-
-sub num-to-metric (Int:D $num) {
-    given $num {
-        when $_ >= PETA { return ($num / PETA).fmt("%.1f P"); }
-        when $_ >= TERA { return ($num / TERA).fmt("%.1f T"); }
-        when $_ >= GIGA { return ($num / GIGA).fmt("%.1f G"); }
-        when $_ >= MEGA { return ($num / MEGA).fmt("%.1f M"); }
-        when $_ >= KILO { return ($num / KILO).fmt("%.1f K"); }
-        default         { return $num                         }
-    }
-}
 
 class ISP-Replnode-statistics {
 
@@ -151,12 +89,12 @@ class Reporter does ISP::Server::Reporter {
             $row                        = Array.new;
             $row.push:                  $node-name;
             $row.push:                  $type;
-            $row.push:                  $filespace ?? $filespace ~ int-to-superscript($fsid.Int) !! ' ';
-            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs);
-            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.source-objs-delta);
-            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.target-objs);
-            $row.push:                  num-with-comma(%!statistics{$node-name}{$fsid}{$type}.target-objs-delta);
-            $row.push:                  num-with-comma($pending-objs);
+            $row.push:                  $filespace ?? $filespace ~ integer-to-superscript($fsid.Int) !! ' ';
+            $row.push:                  add-commas-to-integer(%!statistics{$node-name}{$fsid}{$type}.source-objs);
+            $row.push:                  add-commas-to-integer(%!statistics{$node-name}{$fsid}{$type}.source-objs-delta);
+            $row.push:                  add-commas-to-integer(%!statistics{$node-name}{$fsid}{$type}.target-objs);
+            $row.push:                  add-commas-to-integer(%!statistics{$node-name}{$fsid}{$type}.target-objs-delta);
+            $row.push:                  add-commas-to-integer($pending-objs);
             
             my Rat $pct-complete        = 100.0;
             if $source-objs > 0 {
@@ -172,11 +110,11 @@ class Reporter does ISP::Server::Reporter {
         $row                            = [ '~', ' ', ' ', '-------', '-------', '-------', '-------', '-------', '-------', '---------------', ];
         self.table.add-row:             $row;
         $row                            = [ "~ TOTALS", ' ', ' ', ];
-        $row.push:                      num-to-metric($total-source-objs);
-        $row.push:                      num-to-metric($total-source-objs-delta);
-        $row.push:                      num-to-metric($total-target-objs);
-        $row.push:                      num-to-metric($total-target-objs-delta);
-        $row.push:                      num-to-metric($total-pending-objs);
+        $row.push:                      number-to-metric-unit($total-source-objs);
+        $row.push:                      number-to-metric-unit($total-source-objs-delta);
+        $row.push:                      number-to-metric-unit($total-target-objs);
+        $row.push:                      number-to-metric-unit($total-target-objs-delta);
+        $row.push:                      number-to-metric-unit($total-pending-objs);
         my Rat $pct-complete            = ($total-target-objs / $total-source-objs) * 100;
         if 99.9 < $pct-complete < 100.0 {
             $pct-complete               = 99.9;
@@ -184,7 +122,7 @@ class Reporter does ISP::Server::Reporter {
         $row.push:                      $pct-complete.fmt("%.1f%%");
         my $atd-rate                    = (($!accumulated-total-t-delta / (now - self.first-iteration)).Int * 60);
         $atd-rate                       = 1.0 if 0.0 < $atd-rate < 1.0;
-        $row.push:                      sprintf("%s obj/min", num-to-metric($atd-rate.Int));
+        $row.push:                      sprintf("%s obj/min", number-to-metric-unit($atd-rate.Int));
         self.table.add-row:             $row;
     }
 }
