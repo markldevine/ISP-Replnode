@@ -84,7 +84,7 @@ class Reporter does ISP::Server::Reporter {
             $total-target-objs-delta   += %!statistics{$node-name}{$fsid}{$type}.target-objs-delta;
 
             my $pending-objs            = %!statistics{$node-name}{$fsid}{$type}.pending-objs;
-            $total-pending-objs        += $pending-objs;
+            $total-pending-objs        += $pending-objs.abs;
 
             $row                        = Array.new;
             $row.push:                  $node-name;
