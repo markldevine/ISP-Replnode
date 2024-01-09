@@ -181,6 +181,7 @@ sub MAIN (
     Bool    :$grid,                                 #= Full table grid
     Bool    :$clear,                                #= Clear the screen with each iteration
     Str     :$node,                                 #= ISP NODE name or NODEGROUP
+    Bool    :$cache,                                #= Read from cache
 ) {
     my @command         = ['QUERY', 'REPLNODE'];
     if $node {
@@ -211,6 +212,7 @@ sub MAIN (
                                     :@command,
                                     :@fields,
                                     :sort-by('Node Name'),
+                                    :$cache,
                                   );
     $reporter.loop;
 }
